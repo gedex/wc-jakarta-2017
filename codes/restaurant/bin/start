@@ -1,0 +1,31 @@
+#!/bin/bash
+docker-compose up -d || { echo 'docker and docker-compose must be installed first'; exit 1; }
+
+if [ -f "./wordpress/wp-config.php" ];
+then
+	echo "WordPress config file found."
+else
+	echo "WordPress config file not found. Installing..."
+	docker-compose exec --user www-data phpfpm wp core download
+	docker-compose exec --user www-data phpfpm wp core config --dbhost=mysql --dbname=wordpress --dbuser=root --dbpass=password
+	docker-compose exec --user www-data phpfpm wp core install --url=localhost --title="WCJKT 2017" --admin_user=admin --admin_password=password --admin_email=admin@example.com --skip-email
+fi
+
+if [ -f "./wordpress/wp-content/plugins/woocommerce/woocommerce.php" ];
+then
+	echo "WooCommerce plugin found."
+else
+	echo "WooCommerce plugin not found. Installing..."
+	cp ./plugins/woocommerce.zip wordpress/wp-content/
+	docker-compose exec --user www-data phpfpm wp plugin install /var/www/html/wp-content/woocommerce.zip --activate
+	docker-compose exec --user www-data phpfpm rm /var/www/html/wp-content/woocommerce.zip
+fi
+
+if [ -f "./wordpress/wp-content/plugins/restaurant/restaurant.php" ];
+then
+	echo "Restaurant plugin found."
+else
+	echo "Restaurant plugin not found. Installing..."
+	cp -r ./plugins/restaurant wordpress/wp-content/plugins/restaurant
+	docker-compose exec --user www-data phpfpm wp plugin activate restaurant
+fi

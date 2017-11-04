@@ -1,0 +1,4 @@
+#!/bin/bash
+docker-compose down || { echo 'docker and docker-compose must be installed first'; exit 1; }
+
+rm -rf wordpress/wp-content/plugins/restaurant
